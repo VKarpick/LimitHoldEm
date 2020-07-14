@@ -12,7 +12,7 @@ namespace hold_em_smooth_uct
             //lhePolicy.Initialize();
             lhePolicy.Load();
 
-            uint nSaves = 24;
+            uint nSaves = 100;
             uint episodesPerSave = 500;
             for (uint i = 0; i < nSaves; ++i)
             {
