@@ -38,7 +38,7 @@ namespace hold_em_smooth_uct
                 }
             }
 
-            policyKey = buckets[bucketKeys[state.playerIndex]].ToString() + state.previousActions;
+            policyKey = buckets[bucketKeys[(state.playerIndex == 0) ? 1u : 0]].ToString() + state.previousActions;
         }
 
         public Node Expand()

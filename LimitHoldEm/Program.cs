@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Text;
 
 namespace hold_em_smooth_uct
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Train(LHEPolicy lhePolicy, uint nSaves=100, uint episodesPerSave=500)
         {
-            Console.WriteLine("Loading...");
-            LHEPolicy lhePolicy = new LHEPolicy();
-            //lhePolicy.Initialize();
-            lhePolicy.Load();
-
-            uint nSaves = 100;
-            uint episodesPerSave = 500;
             for (uint i = 0; i < nSaves; ++i)
             {
                 Console.WriteLine("Round " + i.ToString() + " of " + nSaves.ToString());
@@ -24,42 +19,73 @@ namespace hold_em_smooth_uct
                 lhePolicy.Save();
                 Console.WriteLine("Total iterations saved to date: " + lhePolicy.nEpisodes);
             }
+        }
 
-            //uint pos = 0;
-            //uint neg = 0;
-            //foreach (KeyValuePair<string, InformationState> entry in lhePolicy.policy)
-            //{
-            //    bool isFold = entry.Key.Substring(entry.Key.Length - 1) == "f";
-            //    if (!isFold)
-            //    {
-            //        if (entry.Value.value < 0)
-            //        {
-            //            ++neg;
-            //        }
-            //        else
-            //        {
-            //            ++pos;
-            //        }
-            //    }
-            //}
-            //Console.WriteLine(pos);
-            //Console.WriteLine(neg);
+        static void Play(LHEPolicy lhePolicy, uint userIndex=0)
+        {
+            LimitHoldEmState state = new LimitHoldEmState();
 
-            //lhes.Reset();
-            //Node node = new Node(lhes);
-            //MonteCarleTreeSearch mcts = new MonteCarleTreeSearch(lhePolicy, node, true);
+            for (int i = 0; i < 5; ++i)
+            {
+                state.Reset();
+                while (!state.isTerminal)
+                {
+                    Console.WriteLine(state.holeCards[0]);
+                    Console.WriteLine(state.holeCards[1]);
+                    Console.WriteLine(state.communityCards);
 
-            //for (int i = 0; i < 10; ++i)
-            //{
-            //    foreach (uint nEpisodes in new uint[] { 500, 1000, 2000, 4000, 8000, 16000, 32000 })
-            //    {
-            //        var watch = System.Diagnostics.Stopwatch.StartNew();
-            //        mcts.Reset();
-            //        mcts.Search(nEpisodes);
-            //        watch.Stop();
-            //        Console.WriteLine(nEpisodes.ToString() + ": " + watch.ElapsedMilliseconds);
-            //    }
-            //}
+                    uint bucket = state.Discretize(state.street, state.playerIndex);
+                    Console.WriteLine("bucket " + state.street.ToString() + " " + bucket.ToString());
+                    string policyKey = bucket.ToString() + state.previousActions;
+                    string actionName;
+                    LimitHoldEmAction bestAction = LimitHoldEmAction.Call;
+                    double bestValue = double.MinValue;
+                    string bestActionName = "c";
+                    foreach (LimitHoldEmAction action in state.GetActions())
+                    {
+                        switch (action)
+                        {
+                            case LimitHoldEmAction.Fold:
+                                actionName = "f";
+                                break;
+                            case LimitHoldEmAction.Raise:
+                                actionName = "r";
+                                break;
+                            default:
+                                actionName = "c";
+                                break;
+                        }
+
+                        string newKey = policyKey + actionName;
+                        Console.WriteLine(newKey);
+                        double actionValue = lhePolicy.policy[newKey].value;
+                        if (state.playerIndex == 1) { actionValue *= -1; }
+                        Console.WriteLine(actionName + " " + actionValue.ToString());
+                        if (actionValue > bestValue)
+                        {
+                            bestValue = actionValue;
+                            bestAction = action;
+                            bestActionName = actionName;
+                        }
+                    }
+
+                    Console.WriteLine(bestActionName);
+                    state = state.Step(bestAction);
+                }
+
+                Console.WriteLine("==========================================================================================");
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Loading...");
+            LHEPolicy lhePolicy = new LHEPolicy();
+            lhePolicy.Initialize();
+            //lhePolicy.Load();
+
+            Train(lhePolicy, 1000, 500);
+            //Play(lhePolicy);
         }
     }
 }
