@@ -73,7 +73,7 @@ namespace hold_em_smooth_uct
 
         public List<LimitHoldEmAction> GetActions()
         {
-            // check = calling a bet of 0
+            // check == calling a bet of 0
             List<LimitHoldEmAction> actions = new List<LimitHoldEmAction> { LimitHoldEmAction.Call };
 
             if (nStreetBets < 4)    // at most 4 raises allowed
@@ -151,7 +151,7 @@ namespace hold_em_smooth_uct
                                 handValue[i] = Hand.Evaluate(boardMask | Hand.ParseHand(newState.holeCards[i]), 7);
                             }
 
-                            // ties would set reward to 0.0 but that is the default
+                            // ties would set reward to 0.0 but that is already the default
                             if (handValue[0] != handValue[1])
                             {
                                 // both players are guaranteed to have contributed same amount

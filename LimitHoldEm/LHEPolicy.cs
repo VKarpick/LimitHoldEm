@@ -22,7 +22,7 @@ namespace hold_em_smooth_uct
         public ulong nEpisodes;
 
         // key = bucket + previous moves
-        // when changing streets, bucket is for initial street
+        // when changing streets, bucket is for initial street (eg immediately after flop is dealt, bucket street is preflop)
         public Dictionary<string, InformationState> policy = new Dictionary<string, InformationState>();
 
         public void Initialize()
